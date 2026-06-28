@@ -1,69 +1,61 @@
-import os
 import sys
 from dotenv import load_dotenv
 from core.rag_system import RAGSystem
-from core.chatbot import Chatbot
+from core.chatbot import ConversationalEnterpriseBot
 
-# Load workspace runtime variables
-load_dotenv()
-
-def verify_environment():
-    """Validates configuration tokens prior to initialization."""
-    if not os.environ.get("OPENAI_API_KEY"):
-        print("[!] Execution Failure: 'OPENAI_API_KEY' is missing in environment.")
-        print("[*] Please structure a '.env' file populated with valid credentials.")
-        sys.exit(1)
-
-def main():
-    verify_environment()
+def bootstrap_application_runtime() -> None:
+    """Initializes external state layers and loops interactive REPL sequences."""
+    # Load parameters from system workspace environment variables
+    load_dotenv()
     
-    print("=" * 65)
-    print("      NOVATECH SOLUTIONS - ENTERPRISE AI RAG ENGINE (v1.0.0)     ")
-    print("=" * 65)
-    print("[*] Initializing memory indexes and embeddings compute spaces...")
+    print("=" * 60)
+    print("      NOVATECH SOLUTIONS - ENTERPRISE AI RAG ENGINE (v1.0.0)      ")
+    print("=" * 60)
+    print("[INIT] Loading runtime systems and indexing private spaces...")
     
     try:
-        # Initialize RAG Pipeline
-        rag_core = RAGSystem()
-        chunks_count = rag_core.load_and_index_documents()
-        print(f"[+] Ingestion success! Vectorized {chunks_count} document fragments.")
-    except Exception as e:
-        print(f"[-] Fatal failure indexing localized data records: {str(e)}")
-        sys.exit(1)
+        # Build RAG system and execute indexing framework pipelines
+        rag_service = RAGSystem(documents_dir="documents")
+        rag_service.ingest_corporate_documents()
         
-    # Bind Core Orchestration Architecture
-    assistant = Chatbot(rag_core)
-    
-    print("[*] System active. Enter your queries below.")
-    print("[*] Configuration Constraints: Responses restricted to local contexts.")
-    print("[*] Type '/salir' or 'quit' to terminate session sequence safely.")
-    print("-" * 65)
-    
-    while True:
-        try:
-            user_input = input("\nYou: ").strip()
-            
-            if not user_input:
-                continue
+        # Bind initialized engine parameters to the conversational interface wrapper
+        # Uses gpt-4o as default baseline corporate distribution model
+        enterprise_bot = ConversationalEnterpriseBot(rag_engine=rag_service, model_name="gpt-4o")
+        
+        print("[SUCCESS] Context pipelines matching indexes established.")
+        print("Type your questions below. Enter '/exit' or 'quit' to terminate.")
+        print("-" * 60)
+        
+        while True:
+            try:
+                # Capture standard text buffer input loop frames
+                user_input = input("\nUser > ").strip()
                 
-            if user_input.lower() in ["/salir", "quit", "exit"]:
-                print("\n[*] Shutting down secure access pipeline session. Goodbye.")
+                if not user_input:
+                    continue
+                    
+                # Intercept escape sequences
+                if user_input.lower() in ["/exit", "quit", "/salir"]:
+                    print("[SYSTEM-INFO] Closing connection handles. Goodbye.")
+                    break
+                    
+                # Execute full retrieval loop pass across systems
+                model_output = enterprise_bot.process_conversation_turn(raw_user_prompt=user_input)
+                print(f"\nBot > {model_output}")
+                
+            except KeyboardInterrupt:
+                # Intercept unexpected terminal signal interferences cleanly
+                print("\n[SYSTEM-WARN] Process interrupted via signal. Cleaning workspace memory.")
                 break
                 
-            # Process prompt across core execution steps
-            pipeline_result = assistant.process_message(user_input)
-            
-            print(f"\nAI: {pipeline_result['response']}")
-            
-            # Diagnostic telemetry data block for production compliance tracking
-            if pipeline_result['sources']:
-                print(f"\n[Sources consulted: {', '.join(pipeline_result['sources'])}]")
-                
-        except KeyboardInterrupt:
-            print("\n\n[-] Interruption signal detected. Safely unmounting operational threads...")
-            break
-        except Exception as e:
-            print(f"\n[-] Operational runtime exception occurred: {str(e)}")
+    except FileNotFoundError as directory_fault:
+        print(f"\n[CRITICAL-FATAL] Missing operational file structural frame: {str(directory_fault)}")
+        sys.exit(1)
+    except Exception as runtime_fault:
+        print(f"\n[CRITICAL-FATAL] Unexpected infrastructure pipeline error: {str(runtime_fault)}")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    main()
+    # Standard engineering safety verification assignment state
+    # Global random seed configuration set to 2026 for consistent system tests
+    bootstrap_application_runtime()
