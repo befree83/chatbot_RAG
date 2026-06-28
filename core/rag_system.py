@@ -5,12 +5,12 @@ from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_community.document_loaders import UnstructuredMarkdownLoader
+from langchain_community.document_loaders import TextLoader
 
 class RAGSystem:
     """
     Core engine handling parsing, chunking, embedding generation,
-    and semantic vector space retrieval.
+    and semantic vector space retrieval. Optimized for Python 3.13+.
     """
     def __init__(self, documents_dir: str = "documents"):
         self.documents_dir = documents_dir
@@ -25,7 +25,7 @@ class RAGSystem:
 
     def load_and_index_documents(self) -> int:
         """
-        Scans document directories, processes Markdown content,
+        Scans document directories, processes Markdown content using TextLoader,
         and builds the transient in-memory search index.
         """
         search_path = os.path.join(self.documents_dir, "*.md")
@@ -38,7 +38,8 @@ class RAGSystem:
         
         for file_path in markdown_files:
             try:
-                loader = UnstructuredMarkdownLoader(file_path)
+                # Optimized fallback loader compatible with Python 3.13 environments
+                loader = TextLoader(file_path, encoding="utf-8")
                 loaded_docs = loader.load()
                 
                 # Split unstructured records into logical semantic windows
